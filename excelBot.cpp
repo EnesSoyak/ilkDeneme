@@ -10,6 +10,42 @@ void typeTextFull(const std::wstring& text) {
     HKL layout = LoadKeyboardLayoutW(L"0000041F", KLF_ACTIVATE); // Türkçe Q klavye
 
     for (wchar_t ch : text) {
+        // if (ch == L'i' || ch == L'I') {
+        //     // Override Türkçe klavye hatası
+        //     WORD vkCode = 0x49; // 'i' veya 'I' tuş kodu
+        //     bool shift = (ch == L'I');
+
+        //     std::vector<INPUT> inputs;
+
+        //     if (shift) {
+        //         INPUT shiftDown = {};
+        //         shiftDown.type = INPUT_KEYBOARD;
+        //         shiftDown.ki.wVk = VK_SHIFT;
+        //         inputs.push_back(shiftDown);
+        //     }
+
+        //     INPUT keyDown = {};
+        //     keyDown.type = INPUT_KEYBOARD;
+        //     keyDown.ki.wVk = vkCode;
+        //     inputs.push_back(keyDown);
+
+        //     INPUT keyUp = keyDown;
+        //     keyUp.ki.dwFlags = KEYEVENTF_KEYUP;
+        //     inputs.push_back(keyUp);
+
+        //     if (shift) {
+        //         INPUT shiftUp = {};
+        //         shiftUp.type = INPUT_KEYBOARD;
+        //         shiftUp.ki.wVk = VK_SHIFT;
+        //         shiftUp.ki.dwFlags = KEYEVENTF_KEYUP;
+        //         inputs.push_back(shiftUp);
+        //     }
+
+        //     SendInput(inputs.size(), inputs.data(), sizeof(INPUT));
+        //     std::this_thread::sleep_for(std::chrono::milliseconds(80));
+        //     continue;
+        // }
+
         SHORT vk = VkKeyScanExW(ch, layout);
 
         if (vk != -1) {
@@ -63,6 +99,7 @@ void typeTextFull(const std::wstring& text) {
             case L'ğ': vkCode = 0xBD; shift = false; break;
             case L'Ğ': vkCode = 0xBD; shift = true;  break;
             case L'ı': vkCode = 0xF0; shift = false; break;
+            case L'i': vkCode = 0xBA; shift = false;  break;
             case L'I': vkCode = 0x49; shift = false; break;
             case L'İ': vkCode = 0x49; shift = true;  break;
             default: continue;
@@ -100,58 +137,8 @@ void typeTextFull(const std::wstring& text) {
 }
 
 
-void pressEnter() {
-    INPUT input[2] = {};
-    input[0].type = INPUT_KEYBOARD;
-    input[0].ki.wVk = VK_RETURN;
-    input[1] = input[0];
-    input[1].ki.dwFlags = KEYEVENTF_KEYUP;
-
-    SendInput(2, input, sizeof(INPUT));
-}
-
-void typeTextWithLayout(const std::wstring& text) {
-    HKL hKL = LoadKeyboardLayout(L"00000409", KLF_ACTIVATE); // US Q klavye
-
-    for (wchar_t ch : text) {
-        SHORT vk = VkKeyScanExW(ch, hKL);
-        if (vk == -1) continue;
-
-        BYTE virtualKey = LOBYTE(vk);
-        BYTE modifiers = HIBYTE(vk);
-
-        std::vector<INPUT> inputs;
-
-        if (modifiers & 1) { // Shift
-            INPUT shiftDown = {};
-            shiftDown.type = INPUT_KEYBOARD;
-            shiftDown.ki.wVk = VK_SHIFT;
-            inputs.push_back(shiftDown);
-        }
-
-        INPUT keyDown = {};
-        keyDown.type = INPUT_KEYBOARD;
-        keyDown.ki.wVk = virtualKey;
-        inputs.push_back(keyDown);
-
-        INPUT keyUp = keyDown;
-        keyUp.ki.dwFlags = KEYEVENTF_KEYUP;
-        inputs.push_back(keyUp);
-
-        if (modifiers & 1) {
-            INPUT shiftUp = {};
-            shiftUp.type = INPUT_KEYBOARD;
-            shiftUp.ki.wVk = VK_SHIFT;
-            shiftUp.ki.dwFlags = KEYEVENTF_KEYUP;
-            inputs.push_back(shiftUp);
-        }
-
-        SendInput(inputs.size(), inputs.data(), sizeof(INPUT));
-        std::this_thread::sleep_for(std::chrono::milliseconds(80));
-    }
-}
-
 int main() {
+    ActivateKeyboardLayout(LoadKeyboardLayoutA("00000409", KLF_ACTIVATE), KLF_SETFORPROCESS);
     // 1. Excel'i başlat
     STARTUPINFO si = { sizeof(si) };
     PROCESS_INFORMATION pi;
@@ -181,7 +168,7 @@ int main() {
 
     // 5. Yazılacak veriler
     std::vector<std::wstring> values = {
-        L"Ali", L"Veli", L"Çiğdem", L"İzmir", L"Şule", L"Ğazi", L"Ümit", L"ıslak"
+        L"Ali", L"Veli", L"Çiğdem", L"İzmir", L"Şule", L"Ğazi", L"Ümit", L"Islak"
     };
 
     for (const auto& word : values) {
@@ -197,6 +184,8 @@ int main() {
 
         std::this_thread::sleep_for(std::chrono::milliseconds(150));
     }
+    typeTextFull(L"i");
+
 
     return 0;
 }

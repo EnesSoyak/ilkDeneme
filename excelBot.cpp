@@ -166,7 +166,7 @@ int main() {
     mouse_event(MOUSEEVENTF_LEFTUP, 0, 0, 0, 0);
     Sleep(1000); // Hücre odaklansın
 
-    // 5. Yazılacak veriler
+   
     std::vector<std::wstring> values = {
         L"Ali", L"Veli", L"Çiğdem", L"İzmir", L"Şule", L"Ğazi", L"Ümit", L"Islak"
     };

@@ -164,7 +164,7 @@ int main() {
     SetCursorPos(x, y);
     mouse_event(MOUSEEVENTF_LEFTDOWN, 0, 0, 0, 0);
     mouse_event(MOUSEEVENTF_LEFTUP, 0, 0, 0, 0);
-    Sleep(1000); // Hücre odaklansın
+    Sleep(1000); 
 
    
     std::vector<std::wstring> values = {

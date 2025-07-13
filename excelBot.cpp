@@ -3,7 +3,103 @@
 #include <vector>
 #include <thread>
 #include <chrono>
-// Enter’a bas
+#include <iostream>
+#include <unordered_map>
+
+void typeTextFull(const std::wstring& text) {
+    HKL layout = LoadKeyboardLayoutW(L"0000041F", KLF_ACTIVATE); // Türkçe Q klavye
+
+    for (wchar_t ch : text) {
+        SHORT vk = VkKeyScanExW(ch, layout);
+
+        if (vk != -1) {
+            BYTE vkCode = LOBYTE(vk);
+            BYTE shift = HIBYTE(vk) & 1;
+
+            std::vector<INPUT> inputs;
+
+            if (shift) {
+                INPUT shiftDown = {};
+                shiftDown.type = INPUT_KEYBOARD;
+                shiftDown.ki.wVk = VK_SHIFT;
+                inputs.push_back(shiftDown);
+            }
+
+            INPUT keyDown = {};
+            keyDown.type = INPUT_KEYBOARD;
+            keyDown.ki.wVk = vkCode;
+            inputs.push_back(keyDown);
+
+            INPUT keyUp = keyDown;
+            keyUp.ki.dwFlags = KEYEVENTF_KEYUP;
+            inputs.push_back(keyUp);
+
+            if (shift) {
+                INPUT shiftUp = {};
+                shiftUp.type = INPUT_KEYBOARD;
+                shiftUp.ki.wVk = VK_SHIFT;
+                shiftUp.ki.dwFlags = KEYEVENTF_KEYUP;
+                inputs.push_back(shiftUp);
+            }
+
+            SendInput(inputs.size(), inputs.data(), sizeof(INPUT));
+            std::this_thread::sleep_for(std::chrono::milliseconds(80));
+            continue;
+        }
+
+        // Türkçe özel karakterler elle haritalanır
+        WORD vkCode = 0;
+        bool shift = false;
+
+        switch (ch) {
+            case L'ç': vkCode = 0xBA; shift = false; break;
+            case L'Ç': vkCode = 0xBA; shift = true;  break;
+            case L'ş': vkCode = 0xDE; shift = false; break;
+            case L'Ş': vkCode = 0xDE; shift = true;  break;
+            case L'ö': vkCode = 0xC0; shift = false; break;
+            case L'Ö': vkCode = 0xC0; shift = true;  break;
+            case L'ü': vkCode = 0xDC; shift = false; break;
+            case L'Ü': vkCode = 0xDC; shift = true;  break;
+            case L'ğ': vkCode = 0xBD; shift = false; break;
+            case L'Ğ': vkCode = 0xBD; shift = true;  break;
+            case L'ı': vkCode = 0xF0; shift = false; break;
+            case L'I': vkCode = 0x49; shift = false; break;
+            case L'İ': vkCode = 0x49; shift = true;  break;
+            default: continue;
+        }
+
+        std::vector<INPUT> inputs;
+
+        if (shift) {
+            INPUT shiftDown = {};
+            shiftDown.type = INPUT_KEYBOARD;
+            shiftDown.ki.wVk = VK_SHIFT;
+            inputs.push_back(shiftDown);
+        }
+
+        INPUT keyDown = {};
+        keyDown.type = INPUT_KEYBOARD;
+        keyDown.ki.wVk = vkCode;
+        inputs.push_back(keyDown);
+
+        INPUT keyUp = keyDown;
+        keyUp.ki.dwFlags = KEYEVENTF_KEYUP;
+        inputs.push_back(keyUp);
+
+        if (shift) {
+            INPUT shiftUp = {};
+            shiftUp.type = INPUT_KEYBOARD;
+            shiftUp.ki.wVk = VK_SHIFT;
+            shiftUp.ki.dwFlags = KEYEVENTF_KEYUP;
+            inputs.push_back(shiftUp);
+        }
+
+        SendInput(inputs.size(), inputs.data(), sizeof(INPUT));
+        std::this_thread::sleep_for(std::chrono::milliseconds(80));
+    }
+}
+
+
 void pressEnter() {
     INPUT input[2] = {};
     input[0].type = INPUT_KEYBOARD;
@@ -14,42 +110,47 @@ void pressEnter() {
     SendInput(2, input, sizeof(INPUT));
 }
 
+void typeTextWithLayout(const std::wstring& text) {
+    HKL hKL = LoadKeyboardLayout(L"00000409", KLF_ACTIVATE); // US Q klavye
 
-void typeTextWithShift(const std::string& text) {
-    for (char ch : text) {
-        SHORT vk = VkKeyScanA(ch);
+    for (wchar_t ch : text) {
+        SHORT vk = VkKeyScanExW(ch, hKL);
         if (vk == -1) continue;
 
-        bool shift = HIBYTE(vk) & 1;
+        BYTE virtualKey = LOBYTE(vk);
+        BYTE modifiers = HIBYTE(vk);
 
-        INPUT inputs[4] = {};
-        int count = 0;
+        std::vector<INPUT> inputs;
 
-        if (shift) {
-            inputs[count].type = INPUT_KEYBOARD;
-            inputs[count].ki.wVk = VK_SHIFT;
-            count++;
+        if (modifiers & 1) { // Shift
+            INPUT shiftDown = {};
+            shiftDown.type = INPUT_KEYBOARD;
+            shiftDown.ki.wVk = VK_SHIFT;
+            inputs.push_back(shiftDown);
         }
 
-        inputs[count].type = INPUT_KEYBOARD;
-        inputs[count].ki.wVk = LOBYTE(vk);
-        count++;
+        INPUT keyDown = {};
+        keyDown.type = INPUT_KEYBOARD;
+        keyDown.ki.wVk = virtualKey;
+        inputs.push_back(keyDown);
 
-        inputs[count] = inputs[count - 1];
-        inputs[count].ki.dwFlags = KEYEVENTF_KEYUP;
-        count++;
+        INPUT keyUp = keyDown;
+        keyUp.ki.dwFlags = KEYEVENTF_KEYUP;
+        inputs.push_back(keyUp);
 
-        if (shift) {
-            inputs[count].type = INPUT_KEYBOARD;
-            inputs[count].ki.wVk = VK_SHIFT;
-            inputs[count].ki.dwFlags = KEYEVENTF_KEYUP;
-            count++;
+        if (modifiers & 1) {
+            INPUT shiftUp = {};
+            shiftUp.type = INPUT_KEYBOARD;
+            shiftUp.ki.wVk = VK_SHIFT;
+            shiftUp.ki.dwFlags = KEYEVENTF_KEYUP;
+            inputs.push_back(shiftUp);
         }
 
-        SendInput(count, inputs, sizeof(INPUT));
+        SendInput(inputs.size(), inputs.data(), sizeof(INPUT));
         std::this_thread::sleep_for(std::chrono::milliseconds(80));
     }
 }
+
 int main() {
     // 1. Excel'i başlat
     STARTUPINFO si = { sizeof(si) };
@@ -79,10 +180,12 @@ int main() {
     Sleep(1000); // Hücre odaklansın
 
     // 5. Yazılacak veriler
-    std::vector<std::string> values = {"Ali", "Veli", "Ayse", "Fatma"};
+    std::vector<std::wstring> values = {
+        L"Ali", L"Veli", L"Çiğdem", L"İzmir", L"Şule", L"Ğazi", L"Ümit", L"ıslak"
+    };
 
     for (const auto& word : values) {
-        typeTextWithShift(word);
+        typeTextFull(word);
 
         // Enter tuşu
         INPUT enter[2] = {};

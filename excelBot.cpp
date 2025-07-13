@@ -156,7 +156,7 @@ int main() {
     SetForegroundWindow(hwnd);
     Sleep(500);
 
-    // 4. Pencere konumunu al ve hücreye tıklat
+    
     RECT rect;
     GetWindowRect(hwnd, &rect);
     int x = rect.left + 250;

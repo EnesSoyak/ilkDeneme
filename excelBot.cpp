@@ -98,10 +98,9 @@ void typeTextFull(const std::wstring& text) {
             case L'Ü': vkCode = 0xDC; shift = true;  break;
             case L'ğ': vkCode = 0xBD; shift = false; break;
             case L'Ğ': vkCode = 0xBD; shift = true;  break;
-            case L'ı': vkCode = 0xF0; shift = false; break;
-            case L'i': vkCode = 0xBA; shift = false;  break;
-            case L'I': vkCode = 0x49; shift = false; break;
-            case L'İ': vkCode = 0x49; shift = true;  break;
+            // case L'ı': vkCode = 0xF0; shift = false; break;
+            case L'i': vkCode = 0x49; shift = false;  break;
+            case L'I': vkCode = 0x49; shift = true; break;
             default: continue;
         }
 
